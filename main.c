@@ -1,75 +1,59 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <float.h>
 
-struct Student
-{
-    char name[50];
-    int marks_amount;
-    int *marks;
-};
+// Структура для хранения фигуры
+typedef struct {
+    int numSides;
+    int sides[100];
+} Figure;
 
-float calculate_average(struct Student *student)
-{
-    float sum = 0;
-    for (int i = 0; i < student->marks_amount; i++)
-    {
-        sum += student->marks[i];
+// Функция для вычисления периметра фигуры
+int calculatePerimeter(Figure* fig) {
+    int perimeter = 0;
+    for (int i = 0; i < fig->numSides; i++) {
+        perimeter += fig->sides[i];
     }
-    return sum / student->marks_amount;
+    return perimeter;
 }
 
-int main()
-{
-    FILE *input = fopen("input.txt", "r");
-    if (input == NULL)
-    {
-        printf("Error opening input file\n");
-        return 1;
-    }
-
-    int n;
-    fscanf(input, "%d", &n);
-
-    struct Student *students = malloc(n * sizeof(struct Student));
-    float lowest_average = FLT_MAX;
-    int lowest_average_index = 0;
-
-    for (int i = 0; i < n; i++)
-    {
-        fscanf(input, "%s %d", students[i].name, &students[i].marks_amount);
-        students[i].marks = malloc(students[i].marks_amount * sizeof(int));
-
-        for (int j = 0; j < students[i].marks_amount; j++)
-        {
-            fscanf(input, "%d", &students[i].marks[j]);
-        }
-
-        float average = calculate_average(&students[i]);
-        if (average < lowest_average)
-        {
-            lowest_average = average;
-            lowest_average_index = i;
+// Функция для поиска фигуры с максимальным периметром
+void findMaxPerimeter(Figure* figures, int numFigures, Figure* maxFigure) {
+    int maxPerimeter = 0;
+    for (int i = 0; i < numFigures; i++) {
+        int perimeter = calculatePerimeter(&figures[i]);
+        if (perimeter > maxPerimeter) {
+            *maxFigure = figures[i];
+            maxPerimeter = perimeter;
         }
     }
+}
 
-    fclose(input);
+int main() {
+    FILE* inputFile = fopen("input.txt", "r");
+    FILE* outputFile = fopen("output.txt", "w");
 
-    FILE *output = fopen("output.txt", "w");
-    if (output == NULL)
-    {
-        printf("Error opening output file\n");
-        return 1;
+    Figure figures[100];
+    int numFigures = 0;
+
+    // Чтение длин сторон фигур из файла input.txt
+    while (fscanf(inputFile, "%d", &figures[numFigures].numSides) != EOF) {
+        for (int i = 0; i < figures[numFigures].numSides; i++) {
+            fscanf(inputFile, "%d", &figures[numFigures].sides[i]);
+        }
+        numFigures++;
     }
 
-    fprintf(output, "%s\n", students[lowest_average_index].name);
-    fclose(output);
+    // Поиск фигуры с максимальным периметром
+    Figure maxFigure;
+    findMaxPerimeter(figures, numFigures, &maxFigure);
 
-    for (int i = 0; i < n; i++)
-    {
-        free(students[i].marks);
+    // Запись результата в файл output.txt
+    fprintf(outputFile, "%d", maxFigure.numSides);
+    for (int i = 0; i < maxFigure.numSides; i++) {
+        fprintf(outputFile, " %d", maxFigure.sides[i]);
     }
-    free(students);
+
+    fclose(inputFile);
+    fclose(outputFile);
 
     return 0;
 }
